@@ -1,0 +1,48 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        name: isort
+        description: isort your imports, so you don't have to.
+        args: ["--line-length=100", "--profile=black", "--atomic"]
+        files: \.py$
+
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+        name: black
+        description: A formatter for Python files
+        # args: ["--line-length=100"]
+        files: \.py$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        name: flake8
+        description: Your Tool For Style Guide Enforcement
+        additional_dependencies:
+          [darglint, flake8-docstrings, pep8-naming, pydocstyle]
+        args: ["--max-line-length=100", "--docstring-convention=google", "--ignore=E203"]
+        files: \.py$
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v0.991"
+    hooks:
+      - id: mypy
+        name: mypy
+        description: Optional Static Typing for Python
+        args:
+          [
+            "--ignore-missing-imports",
+            "--follow-imports=silent",
+            "--disallow-untyped-defs",
+            "--disallow-incomplete-defs",
+            "--disallow-untyped-calls",
+            "--warn-unused-ignores",
+            "--show-column-numbers",
+            "--show-error-codes",
+          ]
+        files: \.py$
