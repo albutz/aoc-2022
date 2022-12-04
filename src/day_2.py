@@ -1,6 +1,6 @@
 """Advent of Code - Day 2."""
 from __future__ import annotations
-
+from typing import List
 from pathlib import Path
 
 FILE_PATH = Path(__file__).parent.parent / "data" / "day_2.txt"
@@ -72,22 +72,19 @@ class Move:
         return not self < other and not self == other
 
 
-def compute_total_score(strategy_guide: Path | str, type: str) -> int:
+def compute_total_score(strategy: List, type: str) -> int:
     """Total score.
 
     Computation of total score with strategy input.
 
     Args:
-        strategy_guide: Input file for puzzle.
+        strategy: Strategy guide as list.
         type: Type of instruction. If 'result', then X / Y / Z indicate
               loss / draw / win, else rock / paper / scissors.
 
     Returns:
         int: Total score.
     """
-    with open(strategy_guide, "r") as file:
-        strategy = [line.strip().split() for line in file.readlines()]
-
     # 6 for win, 3 for draw, points for shape
     def compute_points(opponent: Move, own: Move) -> int:
         _shape_points = {"Rock": 1, "Paper": 2, "Scissors": 3}
@@ -118,5 +115,8 @@ def compute_total_score(strategy_guide: Path | str, type: str) -> int:
 
 
 if __name__ == "__main__":
-    print(f"Part 1: {compute_total_score(FILE_PATH, 'move')}")
-    print(f"Part 2: {compute_total_score(FILE_PATH, 'result')}")
+    with open(FILE_PATH, "r") as file:
+        strategy = [line.strip().split() for line in file.readlines()]
+
+    print(f"Part 1: {compute_total_score(strategy, 'move')}")
+    print(f"Part 2: {compute_total_score(strategy, 'result')}")
