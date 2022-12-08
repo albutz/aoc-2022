@@ -25,7 +25,7 @@ repos:
         description: Your Tool For Style Guide Enforcement
         additional_dependencies:
           [darglint, flake8-docstrings, pep8-naming, pydocstyle]
-        args: ["--max-line-length=100", "--docstring-convention=google", "--ignore=E203"]
+        args: ["--max-line-length=100", "--docstring-convention=google", "--ignore=E203, W503"]
         files: \.py$
 
   - repo: https://github.com/pre-commit/mirrors-mypy
