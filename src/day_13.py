@@ -1,14 +1,23 @@
 """Advent of Code - Day 13."""
 
-from collections import deque
+from functools import reduce
+from itertools import zip_longest
 from pathlib import Path
 
 FILE_PATH = Path(__file__).parent.parent / "data" / "day_13.txt"
 
-# FILE_PATH = Path().cwd() / "test.txt"
-
 
 def parse_packets(lines: list[str]) -> list:
+    """Parsing.
+
+    Parse pairs of packets from signals.
+
+    Args:
+        lines: Puzzle input.
+
+    Returns:
+        list: List of pairs for comparison.
+    """
     split_points = [i for i, val in enumerate(lines) if val == ""]
     split_points.insert(0, -1)
     split_points.append(len(lines))
@@ -18,67 +27,79 @@ def parse_packets(lines: list[str]) -> list:
         for i in range(len(split_points) - 1)
     ]
 
-    return signals
+    return [[eval(p[0]), eval(p[1])] for p in signals]
 
 
-def compare_packet(packet: list[str]):
+def compare_packet(left: int | list, right: int | list) -> int:
+    """Comparison.
 
-    left, right = [deque(eval(p)) for p in packet]
+    Compare two packets. Returns a positive integer if the pairs are in the
+    right order an a negative integer if they are in the reverse order.
 
-    def _compare(l, r):
-        # One list starts empty
-        if len(l) == 0:
-            print("Left side ran out of items.")
-            return True
-        if len(r) == 0:
-            print("Right side ran out of items.")
-            return False
-        l, r = deque(l), deque(r)
-        for l_, r_ in zip(l, r):
-            match (l_, r_):
-                case (int(l__), int(r__)):
-                    print(f"Case 1: {l__=}, {r__=}")
-                    # Int comparison
-                    if l__ != r__:
-                        return True if l__ < r__ else False
-                    # One side runs out of items
-                    # elif len(left) != len(right):
-                    #     side = "Left" if len(left) < len(right) else "Right"
-                    #     print(f"{side} side ran out of items.")
-                    #     return len(left) < len(right)
-                    else:
-                        continue
-                case (list(l__), list(r__)):
-                    print(f"Case 2: {l__=}, {r__=}")
-                    return _compare(l_, r_)
-                case (list(l__), int(r__)):
-                    print(f"Case 3: {l__=}, {r__=}")
-                    return _compare(l__, [r__])
-                case (int(l__), list(r__)):
-                    print(f"Case 4: {l__=}, {r__=}")
-                    return _compare([l__], r__)
+    Args:
+        left: Left item for comparison.
+        right: Right item for comparison.
 
-        print("loop exited")
+    Returns:
+        int: Order indicator.
+    """
+    # > 0 if in right order
+    match (left, right):
+        case (int(l), int(r)):
+            return r - l
+        case (int(l), list(r)):
+            return compare_packet([l], r)
+        case (list(l), int(r)):
+            return compare_packet(l, [r])
+        case (list(l), list(r)):
+            for l_, r_ in zip_longest(l, r):
+                if l_ is None:
+                    return 1
+                elif r_ is None:
+                    return -1
+                elif diff := compare_packet(l_, r_):
+                    return diff
+    return 0
 
-        # One side runs out of items
-        if len(left) != len(right):
-            side = "Left" if len(left) < len(right) else "Right"
-            print(f"{side} side ran out of items.")
-            return len(left) < len(right)
 
-        # Drop current item (list) and start again
-        left.popleft()
-        right.popleft()
+def compute_decoder_key(packets: list) -> int:
+    """Decoder key.
 
-        return _compare(left, right)
+    Sort all packets and return the decoder key for the divider packets.
 
-    return _compare(left, right)
+    Args:
+        packets: List of pairs for comparison.
+
+    Returns:
+        int: Decoder key.
+    """
+    # Initialize with divider packets
+    sorted_packets = [[[2]], [[6]]]
+    for packet in packets:
+        for p in packet:
+            for i, sorted_packet in enumerate(sorted_packets):
+                if compare_packet(sorted_packet, p) <= 0:
+                    sorted_packets.insert(i, p)
+                    break
+    divider_indices = [
+        i
+        for i, packet in enumerate(sorted_packets, 1)
+        if packet == [[2]] or packet == [[6]]
+    ]
+    return reduce(lambda x, y: x * y, divider_indices)
 
 
 if __name__ == "__main__":
     with open(FILE_PATH, "r") as file:
         lines = [line.strip() for line in file.readlines()]
     packets = parse_packets(lines)
-    print(
-        f"Part 1: {sum([i + 1 for i, packet in enumerate(packets) if compare_packet(packet)])}."
+    sum_of_indices = sum(
+        [
+            i
+            for i, packet in enumerate(packets, 1)
+            if compare_packet(packet[0], packet[1]) > 0
+        ]
     )
+    print(f"Part 1: {sum_of_indices}.")
+    decoder_key = compute_decoder_key(packets)
+    print(f"Part 2: {decoder_key}.")
